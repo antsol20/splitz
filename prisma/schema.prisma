@@ -23,6 +23,7 @@ model User {
 
 model Group {
   id          String   @id @default(cuid())
+  shareCode   String   @unique
   name        String
   description String?
   currency    String   @default("USD")

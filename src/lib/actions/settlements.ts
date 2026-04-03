@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { createSettlementSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 
+async function revalidateGroup(groupId: string) {
+  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
+  if (group) revalidatePath(`/groups/${group.shareCode}`);
+}
+
 export async function createSettlement(data: {
   groupId: string;
   fromId: string;
@@ -22,7 +27,7 @@ export async function createSettlement(data: {
 
   await prisma.settlement.create({ data: parsed.data });
 
-  revalidatePath(`/groups/${parsed.data.groupId}`);
+  await revalidateGroup(parsed.data.groupId);
   return { success: true };
 }
 

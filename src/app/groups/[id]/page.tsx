@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import { getGroup } from "@/lib/actions/groups";
+import { getGroupByShareCode } from "@/lib/actions/groups";
 import { calculateBalances } from "@/lib/actions/settlements";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddMemberForm } from "@/components/add-member-form";
@@ -18,13 +18,13 @@ export default async function GroupDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const group = await getGroup(id);
+  const group = await getGroupByShareCode(id);
 
   if (!group) {
     notFound();
   }
 
-  const { balances, debts } = await calculateBalances(id);
+  const { balances, debts } = await calculateBalances(group.id);
 
   const members = group.members.map((m) => ({
     id: m.id,

@@ -1,78 +1,79 @@
-import Link from "next/link";
-import { getGroups } from "@/lib/actions/groups";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { buttonVariants } from "@/components/ui/button-variants";
+import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export default function GroupsPage() {
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
 
-export default async function GroupsPage() {
-  const groups = await getGroups();
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = code.trim().toLowerCase();
+    if (!trimmed) {
+      setError("Please enter a group code");
+      return;
+    }
+    setError("");
+    router.push(`/groups/${trimmed}`);
+  }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <div className="flex items-end justify-between mb-10">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">My Groups</h1>
-          <p className="text-mauve mt-1">Manage your expense groups</p>
+    <div className="container mx-auto px-4 py-12 max-w-md">
+      <div className="rounded-xl border border-border bg-card p-8">
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-foreground">Find a Group</h2>
+          <p className="text-sm text-mauve mt-1">
+            Enter the group code shared with you to view expenses.
+          </p>
         </div>
-        <Link
-          href="/groups/new"
-          className={buttonVariants({
-            className:
-              "bg-gradient-to-r from-rose-muted to-primary text-background font-medium hover:opacity-90 transition-opacity",
-          })}
-        >
-          New Group
-        </Link>
-      </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="code" className="text-sm text-foreground">
+              Group Code
+            </Label>
+            <Input
+              id="code"
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setError("");
+              }}
+              placeholder="e.g. a1b2c3d4"
+              className="font-mono"
+              autoFocus
+            />
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-rose-muted to-primary text-background font-medium hover:opacity-90 transition-opacity"
+          >
+            View Group
+          </Button>
+        </form>
 
-      {groups.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-16 text-center">
-          <p className="text-mauve mb-6">
-            You haven&apos;t created any groups yet.
+        <div className="mt-6 pt-6 border-t border-border text-center">
+          <p className="text-sm text-mauve mb-3">
+            Or start a new expense group
           </p>
           <Link
             href="/groups/new"
             className={buttonVariants({
-              className:
-                "bg-gradient-to-r from-rose-muted to-primary text-background font-medium hover:opacity-90 transition-opacity",
+              variant: "outline",
+              className: "w-full",
             })}
           >
-            Create your first group
+            Create New Group
           </Link>
         </div>
-      ) : (
-        <div className="rounded-xl border border-border overflow-hidden bg-border grid gap-px md:grid-cols-2">
-          {groups.map((group) => (
-            <Link key={group.id} href={`/groups/${group.id}`}>
-              <div className="bg-card p-6 h-full transition-colors hover:bg-accent cursor-pointer group">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="font-semibold text-foreground group-hover:text-rose transition-colors">
-                    {group.name}
-                  </h3>
-                  <span className="text-xs text-mauve border border-border rounded px-1.5 py-0.5">
-                    {group.currency}
-                  </span>
-                </div>
-                {group.description && (
-                  <p className="text-sm text-mauve mb-3">
-                    {group.description}
-                  </p>
-                )}
-                <div className="flex gap-4 text-xs text-mauve/60">
-                  <span>
-                    {group.members.length}{" "}
-                    {group.members.length === 1 ? "member" : "members"}
-                  </span>
-                  <span>
-                    {group._count.expenses}{" "}
-                    {group._count.expenses === 1 ? "expense" : "expenses"}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function HomePage() {
                   "border-border hover:border-rose/40 hover:bg-rose/5 text-foreground px-8 transition-all",
               })}
             >
-              View Groups
+              Find a Group
             </Link>
           </div>
         </div>
@@ -61,9 +61,9 @@ export default function HomePage() {
           {[
             {
               title: "No Sign-up Required",
-              desc: "Create a group and start splitting right away. Share the link with friends.",
+              desc: "Create a group and start splitting right away. Share the code with friends.",
               detail:
-                "Just create a group, add members by name and email, and start tracking expenses.",
+                "Just create a group, share its unique code, add members, and start tracking expenses.",
             },
             {
               title: "Flexible Splitting",

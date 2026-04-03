@@ -18,7 +18,7 @@ export function Navbar() {
               className: "text-mauve hover:text-foreground hover:bg-accent",
             })}
           >
-            My Groups
+            Find Group
           </Link>
           <Link
             href="/groups/new"

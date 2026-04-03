@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteGroup } from "@/lib/actions/groups";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 type GroupHeaderProps = {
   group: {
     id: string;
+    shareCode: string;
     name: string;
     description: string | null;
     currency: string;
@@ -17,12 +19,20 @@ type GroupHeaderProps = {
 
 export function GroupHeader({ group }: GroupHeaderProps) {
   const router = useRouter();
+  const [copied, setCopied] = useState(false);
 
   async function handleDelete() {
     if (!confirm("Are you sure you want to delete this group?")) return;
     await deleteGroup(group.id);
     toast.success("Group deleted");
     router.push("/groups");
+  }
+
+  function handleCopyCode() {
+    navigator.clipboard.writeText(group.shareCode);
+    setCopied(true);
+    toast.success("Group code copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -37,10 +47,20 @@ export function GroupHeader({ group }: GroupHeaderProps) {
         {group.description && (
           <p className="text-mauve mt-1">{group.description}</p>
         )}
-        <p className="text-sm text-mauve/60 mt-1">
-          {group.members.length}{" "}
-          {group.members.length === 1 ? "member" : "members"}
-        </p>
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-sm text-mauve/60">
+            {group.members.length}{" "}
+            {group.members.length === 1 ? "member" : "members"}
+          </p>
+          <button
+            onClick={handleCopyCode}
+            className="flex items-center gap-1.5 text-xs text-mauve hover:text-foreground border border-border rounded px-2 py-0.5 transition-colors cursor-pointer"
+            title="Click to copy group code"
+          >
+            <span className="font-mono font-medium">{group.shareCode}</span>
+            <span>{copied ? "✓" : "⧉"}</span>
+          </button>
+        </div>
       </div>
       <Button
         variant="ghost"

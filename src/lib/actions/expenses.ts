@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { createExpenseSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 
+async function revalidateGroup(groupId: string) {
+  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
+  if (group) revalidatePath(`/groups/${group.shareCode}`);
+}
+
 export async function createExpense(data: {
   description: string;
   amount: number;
@@ -79,12 +84,12 @@ export async function createExpense(data: {
     include: { splits: true },
   });
 
-  revalidatePath(`/groups/${groupId}`);
+  await revalidateGroup(groupId);
   return { expenseId: expense.id };
 }
 
 export async function deleteExpense(expenseId: string, groupId: string) {
   await prisma.expense.delete({ where: { id: expenseId } });
-  revalidatePath(`/groups/${groupId}`);
+  await revalidateGroup(groupId);
   return { success: true };
 }

@@ -1,7 +1,7 @@
 "use server";
 
-import { randomBytes } from "crypto";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
+import { sendGroupInviteEmail } from "@/lib/email";
 import {
   createGroupSchema,
   addMemberSchema,
@@ -10,10 +10,12 @@ import {
 import { revalidatePath } from "next/cache";
 
 function generateShareCode(): string {
-  return randomBytes(4).toString("hex"); // 8-char hex string
+  const bytes = crypto.getRandomValues(new Uint8Array(4));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(""); // 8-char hex string
 }
 
 export async function createGroup(formData: FormData) {
+  const prisma = getPrisma();
   const parsed = createGroupSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description") || undefined,
@@ -36,6 +38,7 @@ export async function createGroup(formData: FormData) {
 }
 
 export async function addMemberToGroup(formData: FormData) {
+  const prisma = getPrisma();
   const parsed = addMemberSchema.safeParse({
     groupId: formData.get("groupId"),
     email: formData.get("email"),
@@ -70,12 +73,28 @@ export async function addMemberToGroup(formData: FormData) {
     data: { userId: user.id, groupId },
   });
 
-  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
-  if (group) revalidatePath(`/groups/${group.shareCode}`);
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { shareCode: true, name: true },
+  });
+
+  if (group) {
+    // Best-effort: a failed invite must not fail the membership write.
+    await sendGroupInviteEmail({
+      to: user.email,
+      name: user.name,
+      groupName: group.name,
+      shareCode: group.shareCode,
+    }).catch((err) => console.error("[email] invite failed", err));
+
+    revalidatePath(`/groups/${group.shareCode}`);
+  }
+
   return { success: true };
 }
 
 export async function getGroupByShareCode(shareCode: string) {
+  const prisma = getPrisma();
   return prisma.group.findUnique({
     where: { shareCode },
     include: {
@@ -96,15 +115,23 @@ export async function getGroupByShareCode(shareCode: string) {
 }
 
 export async function deleteGroup(groupId: string) {
-  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
+  const prisma = getPrisma();
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { shareCode: true },
+  });
   await prisma.group.delete({ where: { id: groupId } });
   if (group) revalidatePath(`/groups/${group.shareCode}`);
   return { success: true };
 }
 
 export async function removeMember(groupId: string, memberId: string) {
+  const prisma = getPrisma();
   await prisma.member.delete({ where: { id: memberId } });
-  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { shareCode: true },
+  });
   if (group) revalidatePath(`/groups/${group.shareCode}`);
   return { success: true };
 }

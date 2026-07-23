@@ -1,11 +1,15 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { createSettlementSchema } from "@/lib/schemas";
 import { revalidatePath } from "next/cache";
 
 async function revalidateGroup(groupId: string) {
-  const group = await prisma.group.findUnique({ where: { id: groupId }, select: { shareCode: true } });
+  const prisma = getPrisma();
+  const group = await prisma.group.findUnique({
+    where: { id: groupId },
+    select: { shareCode: true },
+  });
   if (group) revalidatePath(`/groups/${group.shareCode}`);
 }
 
@@ -15,6 +19,7 @@ export async function createSettlement(data: {
   toId: string;
   amount: number;
 }) {
+  const prisma = getPrisma();
   const parsed = createSettlementSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -46,6 +51,7 @@ export type Debt = {
 };
 
 export async function calculateBalances(groupId: string) {
+  const prisma = getPrisma();
   const group = await prisma.group.findUnique({
     where: { id: groupId },
     include: {

@@ -1,9 +1,20 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaD1 } from "@prisma/adapter-d1";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// D1 bindings are handed to the Worker per invocation, so the client cannot be
+// built at module scope. Keyed on the binding itself: reused while the isolate
+// keeps serving the same D1 instance, rebuilt when the runtime swaps it out.
+const clients = new WeakMap<D1Database, PrismaClient>();
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+export function getPrisma(): PrismaClient {
+  const { env } = getCloudflareContext();
+  const db = env.DB;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+  let client = clients.get(db);
+  if (!client) {
+    client = new PrismaClient({ adapter: new PrismaD1(db) });
+    clients.set(db, client);
+  }
+  return client;
+}

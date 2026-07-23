@@ -10,6 +10,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Group" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "shareCode" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "currency" TEXT NOT NULL DEFAULT 'USD',
@@ -68,6 +69,9 @@ CREATE TABLE "Settlement" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Group_shareCode_key" ON "Group"("shareCode");
+
+-- CreateIndex
 CREATE INDEX "Member_groupId_idx" ON "Member"("groupId");
 
 -- CreateIndex
@@ -93,3 +97,4 @@ CREATE INDEX "Settlement_fromId_idx" ON "Settlement"("fromId");
 
 -- CreateIndex
 CREATE INDEX "Settlement_toId_idx" ON "Settlement"("toId");
+

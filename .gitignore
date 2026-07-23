@@ -32,3 +32,11 @@ next-env.d.ts
 /src/generated/prisma
 *.db
 *.db-journal
+
+# cloudflare
+/.open-next/
+/.wrangler/
+cloudflare-env.d.ts
+
+# cloudflare local secrets
+.dev.vars

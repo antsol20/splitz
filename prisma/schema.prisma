@@ -1,5 +1,12 @@
+// `runtime = "cloudflare"` emits a client built for workerd: the Rust engine is
+// replaced by the TS query compiler and the wasm is imported as a module rather
+// than read off disk with fs.
 generator client {
-  provider = "prisma-client-js"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  runtime      = "cloudflare"
+  moduleFormat = "esm"
+  engineType   = "client"
 }
 
 datasource db {

@@ -42,10 +42,10 @@ bun run preview
    bun run cf:db:migrate:remote
    ```
 
-4. **Set the email secret** (see below):
+4. **Set the mail API key** (see [Email](#email)):
 
    ```bash
-   bunx wrangler secret put EMAIL_API_KEY
+   bunx wrangler secret put MAIL_API_KEY
    ```
 
 5. **Deploy**:
@@ -82,10 +82,44 @@ bun run cf:db:migrate:local
 
 ## Email
 
-`src/lib/email.ts` is a **placeholder**. It logs what it would send and reports
-`{ sent: false }` until a provider is wired up; nothing in the app fails when an
-email cannot be sent. Replace the body of `send()` with the real provider call —
-the exported `sendGroupInviteEmail` signature is what the rest of the app uses.
+`src/lib/email.ts` talks to the Splitz mail API (`API_USAGE.md`) — a send-only
+`POST /send` endpoint authenticated with a bearer token. Every send is
+best-effort: `sendGroupInviteEmail` returns `{ sent, messageId?, error? }` and
+never throws, so a mail failure cannot roll back the write it accompanies.
 
-The API key is read from the `EMAIL_API_KEY` secret. For local development, copy
-`.dev.vars.example` to `.dev.vars` and fill it in.
+- Sender is `hello@split-z.com` — the API rejects any other domain with `403`.
+- Both `html` and `text` are always sent; interpolated names are HTML-escaped.
+- `502`s and network errors are retried 3× with exponential backoff. `4xx` is
+  never retried, since the request itself is what's wrong.
+
+Configuration:
+
+| Name           | Kind       | Where                                                         |
+| -------------- | ---------- | ------------------------------------------------------------- |
+| `MAIL_API_URL` | var        | `wrangler.jsonc` (defaults to `https://mail-api.split-z.com`) |
+| `MAIL_API_KEY` | **secret** | `wrangler secret put` or the dashboard — see below            |
+
+With no `MAIL_API_KEY` set, sends are skipped and logged rather than attempted,
+which keeps local development working without a key.
+
+### Setting MAIL_API_KEY
+
+CLI (recommended — writes straight to the deployed Worker):
+
+```bash
+bunx wrangler secret put MAIL_API_KEY
+```
+
+Dashboard: **Workers & Pages → splitz → Settings → Variables and Secrets → Add**,
+set type to **Secret**, name `MAIL_API_KEY`, paste the key, **Save and deploy**.
+Encrypted secrets are write-only — you can replace the value but never read it
+back. Do **not** add it under `vars` in `wrangler.jsonc`; that file is committed
+and its values are plaintext.
+
+For local development, copy `.dev.vars.example` to `.dev.vars` and fill it in.
+`.dev.vars` is gitignored.
+
+> The Worker fetches `mail-api.split-z.com`, which is in the same zone as the
+> app. The `global_fetch_strictly_public` compatibility flag in `wrangler.jsonc`
+> is what makes that request leave for the public internet instead of looping
+> back into this Worker — don't remove it.

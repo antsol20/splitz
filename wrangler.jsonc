@@ -4,34 +4,38 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
-
   "observability": {
     "enabled": true,
   },
-
   // Run `bun run cf:db:create` and paste the returned database_id here.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "splitz-db",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "34ba307f-6d4f-4007-8f35-4f47632ba6cf",
       "migrations_dir": "migrations",
     },
   ],
-
+  // MAIL_API_KEY is a secret, not a var — set it with `wrangler secret put`
+  // or in the dashboard (Workers & Pages > splitz > Settings > Variables).
   "vars": {
     "APP_URL": "https://split-z.com",
+    "MAIL_API_URL": "https://mail-api.split-z.com",
   },
-
   // Custom domains create the proxied DNS records for split-z.com automatically
   // on first deploy, provided the zone is on Cloudflare nameservers.
   "routes": [
-    { "pattern": "split-z.com", "custom_domain": true },
-    { "pattern": "www.split-z.com", "custom_domain": true },
+    {
+      "pattern": "split-z.com",
+      "custom_domain": true,
+    },
+    {
+      "pattern": "www.split-z.com",
+      "custom_domain": true,
+    },
   ],
 }

@@ -40,3 +40,6 @@ cloudflare-env.d.ts
 
 # cloudflare local secrets
 .dev.vars
+
+# local agent notes
+CLAUDE.local.md

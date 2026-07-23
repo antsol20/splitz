@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createGroup } from "@/lib/actions/groups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

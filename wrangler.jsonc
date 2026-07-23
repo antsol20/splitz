@@ -26,10 +26,6 @@
     {
       "pattern": "split-z.com",
       "custom_domain": true,
-    },
-    {
-      "pattern": "www.split-z.com",
-      "custom_domain": true,
-    },
+    }
   ],
 }

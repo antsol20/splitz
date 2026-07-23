@@ -1,7 +1,6 @@
 "use server";
 
 import { getPrisma } from "@/lib/db";
-import { sendGroupInviteEmail } from "@/lib/email";
 import {
   createGroupSchema,
   addMemberSchema,
@@ -41,7 +40,6 @@ export async function addMemberToGroup(formData: FormData) {
   const prisma = getPrisma();
   const parsed = addMemberSchema.safeParse({
     groupId: formData.get("groupId"),
-    email: formData.get("email"),
     name: formData.get("name"),
   });
 
@@ -49,25 +47,26 @@ export async function addMemberToGroup(formData: FormData) {
     return { error: parsed.error.issues[0].message };
   }
 
-  const { groupId, email, name } = parsed.data;
+  const { groupId, name } = parsed.data;
 
-  let user = await prisma.user.findUnique({ where: { email } });
-
-  if (!user) {
-    const userParsed = createUserSchema.safeParse({ name, email });
-    if (!userParsed.success) {
-      return { error: userParsed.error.issues[0].message };
-    }
-    user = await prisma.user.create({ data: userParsed.data });
+  const userParsed = createUserSchema.safeParse({ name });
+  if (!userParsed.success) {
+    return { error: userParsed.error.issues[0].message };
   }
 
-  const existing = await prisma.member.findUnique({
-    where: { userId_groupId: { userId: user.id, groupId } },
+  // Without an email there is no identity that spans groups, so a person is
+  // scoped to the group they were added to: name is what distinguishes them,
+  // and each add creates its own user row.
+  const existing = await prisma.member.findFirst({
+    where: { groupId, user: { name } },
+    select: { id: true },
   });
 
   if (existing) {
-    return { error: "This person is already in the group" };
+    return { error: "Someone with that name is already in the group" };
   }
+
+  const user = await prisma.user.create({ data: userParsed.data });
 
   await prisma.member.create({
     data: { userId: user.id, groupId },
@@ -75,20 +74,10 @@ export async function addMemberToGroup(formData: FormData) {
 
   const group = await prisma.group.findUnique({
     where: { id: groupId },
-    select: { shareCode: true, name: true },
+    select: { shareCode: true },
   });
 
-  if (group) {
-    // Best-effort: a failed invite must not fail the membership write.
-    await sendGroupInviteEmail({
-      to: user.email,
-      name: user.name,
-      groupName: group.name,
-      shareCode: group.shareCode,
-    }).catch((err) => console.error("[email] invite failed", err));
-
-    revalidatePath(`/groups/${group.shareCode}`);
-  }
+  if (group) revalidatePath(`/groups/${group.shareCode}`);
 
   return { success: true };
 }

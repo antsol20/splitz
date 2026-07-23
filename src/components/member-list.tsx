@@ -8,7 +8,6 @@ type Member = {
   id: string;
   userId: string;
   name: string;
-  email: string;
 };
 
 export function MemberList({
@@ -54,12 +53,9 @@ export function MemberList({
                   .toUpperCase()
                   .slice(0, 2)}
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {member.name}
-                </p>
-                <p className="text-xs text-mauve">{member.email}</p>
-              </div>
+              <p className="text-sm font-medium text-foreground">
+                {member.name}
+              </p>
             </div>
             <Button
               variant="ghost"

@@ -20,12 +20,6 @@
       "migrations_dir": "migrations",
     },
   ],
-  // MAIL_API_KEY is a secret, not a var — set it with `wrangler secret put`
-  // or in the dashboard (Workers & Pages > splitz > Settings > Variables).
-  "vars": {
-    "APP_URL": "https://split-z.com",
-    "MAIL_API_URL": "https://mail-api.split-z.com",
-  },
   // Custom domains create the proxied DNS records for split-z.com automatically
   // on first deploy, provided the zone is on Cloudflare nameservers.
   "routes": [

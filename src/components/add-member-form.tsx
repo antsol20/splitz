@@ -29,7 +29,7 @@ export function AddMemberForm({ groupId }: { groupId: string }) {
       <div className="mb-5">
         <h3 className="font-semibold text-foreground">Add Member</h3>
         <p className="text-sm text-mauve mt-0.5">
-          Add someone to this group by name and email.
+          Add someone to this group by name.
         </p>
       </div>
       <form action={handleSubmit} className="flex flex-wrap gap-3">
@@ -38,18 +38,6 @@ export function AddMemberForm({ groupId }: { groupId: string }) {
             Name
           </Label>
           <Input id="member-name" name="name" placeholder="John" required />
-        </div>
-        <div className="space-y-1.5 flex-1 min-w-[200px]">
-          <Label htmlFor="member-email" className="text-sm text-foreground">
-            Email
-          </Label>
-          <Input
-            id="member-email"
-            name="email"
-            type="email"
-            placeholder="john@example.com"
-            required
-          />
         </div>
         <div className="flex items-end">
           <Button

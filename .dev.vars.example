@@ -1,3 +1,0 @@
-# Copy to .dev.vars for local dev; set in production with:
-#   bunx wrangler secret put MAIL_API_KEY
-MAIL_API_KEY=""

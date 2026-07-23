@@ -2,7 +2,6 @@ import { z } from "zod/v4";
 
 export const createUserSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
-  email: z.email("Invalid email address"),
 });
 
 export const createGroupSchema = z.object({
@@ -13,7 +12,6 @@ export const createGroupSchema = z.object({
 
 export const addMemberSchema = z.object({
   groupId: z.string().min(1),
-  email: z.email("Invalid email address"),
   name: z.string().min(1, "Name is required").max(100),
 });
 

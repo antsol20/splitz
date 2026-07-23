@@ -30,7 +30,6 @@ export default async function GroupDetailPage({
     id: m.id,
     userId: m.userId,
     name: m.user.name,
-    email: m.user.email,
   }));
 
   return (
